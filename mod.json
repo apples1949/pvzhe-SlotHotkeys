@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 2,
+  "id": "slothotkeys",
+  "name": "卡槽与铲子快捷键",
+  "version": "4.1.5",
+  "author": "apples1949",
+  "description": "给战斗选卡栏的卡槽与铲子加快捷键：卡槽冷却（CD）恢复完成后在卡槽内显示对应键位，按一下就选中该卡；铲子的键位一直显示，按一下切换铲子。键位均可在配置页逐项修改。不改动游戏任何原有逻辑。",
+  "playInstructions": "1. 进战斗后，打开改键面板（呼出键或配置页「改键面板」按钮）：每行 = 一个卡槽/铲子，点一行 → 按新键；「清空」解绑。\n2. 键位立即生效并自动保存；冲突键自动对调。\n3. CD 恢复完成才显示键位标签（可在配置页改）。\n4. 配置页的「键位数据」由面板自动维护，请勿手改。",
+  "dependencies": [],
+  "conflicts": [],
+  "provides": {},
+  "overrides": {},
+  "scripts": [],
+  "runtimeAssembly": "Runtime/ModAssembly.dll",
+  "runtimeEntryType": "SlotHotkeysEntry",
+  "runtimeApiVersion": 3,
+  "runtimeAssemblyPolicy": "optional",
+  "blueprints": [],
+  "translations": [],
+  "resources": [
+    "Resources/SponsorQR.png",
+    "Runtime/ModAssembly.dll"
+  ],
+  "settings": [
+    {
+      "key": "enabled",
+      "type": "bool",
+      "label": "启用",
+      "group": "功能",
+      "default": true,
+      "description": "关闭后不显示键位、也不响应快捷键。",
+      "applyMode": "immediate",
+      "affectsGameplay": false
+    },
+    {
+      "key": "showOnlyWhenReady",
+      "type": "bool",
+      "label": "仅在CD好时显示键位",
+      "group": "功能",
+      "default": true,
+      "description": "开（默认）：卡槽冷却完成才显示键位；关：一直显示。",
+      "applyMode": "immediate",
+      "affectsGameplay": false
+    },
+    {
+      "key": "keysData",
+      "type": "string",
+      "label": "键位数据",
+      "group": "功能",
+      "default": "",
+      "description": "各卡槽与铲子的键位（由游戏内录制面板自动维护，格式：卡槽1=键,卡槽2=键,...,铲子=键；留空=未设置）。请勿手动修改，用游戏内面板改键。",
+      "applyMode": "immediate",
+      "affectsGameplay": false
+    },
+    {
+      "key": "enableLog",
+      "type": "bool",
+      "label": "输出诊断日志",
+      "group": "诊断",
+      "default": false,
+      "description": "排查问题时打开，会把运行状态写进 godot.log。",
+      "applyMode": "immediate",
+      "affectsGameplay": false
+    },
+    {
+      "key": "panelKey",
+      "type": "enum",
+      "label": "改键面板呼出键",
+      "group": "功能",
+      "default": "",
+      "description": "按此键呼出/关闭「键位设置」面板（默认无绑定=只能从战斗设置页进入）。冲突键自动对调，保存后立即生效。",
+      "applyMode": "immediate",
+      "affectsGameplay": false,
+      "options": [
+        {
+          "value": "",
+          "label": "（无绑定）"
+        },
+        {
+          "value": "A",
+          "label": "A"
+        },
+        {
+          "value": "B",
+          "label": "B"
+        },
+        {
+          "value": "C",
+          "label": "C"
+        },
+        {
+          "value": "D",
+          "label": "D"
+        },
+        {
+          "value": "E",
+          "label": "E"
+        },
+        {
+          "value": "F",
+          "label": "F"
+        },
+        {
+          "value": "G",
+          "label": "G"
+        },
+        {
+          "value": "H",
+          "label": "H"
+        },
+        {
+          "value": "I",
+          "label": "I"
+        },
+        {
+          "value": "J",
+          "label": "J"
+        },
+        {
+          "value": "K",
+          "label": "K"
+        },
+        {
+          "value": "L",
+          "label": "L"
+        },
+        {
+          "value": "M",
+          "label": "M"
+        },
+        {
+          "value": "N",
+          "label": "N"
+        },
+        {
+          "value": "O",
+          "label": "O"
+        },
+        {
+          "value": "P",
+          "label": "P"
+        },
+        {
+          "value": "Q",
+          "label": "Q"
+        },
+        {
+          "value": "R",
+          "label": "R"
+        },
+        {
+          "value": "S",
+          "label": "S"
+        },
+        {
+          "value": "T",
+          "label": "T"
+        },
+        {
+          "value": "U",
+          "label": "U"
+        },
+        {
+          "value": "V",
+          "label": "V"
+        },
+        {
+          "value": "W",
+          "label": "W"
+        },
+        {
+          "value": "X",
+          "label": "X"
+        },
+        {
+          "value": "Y",
+          "label": "Y"
+        },
+        {
+          "value": "Z",
+          "label": "Z"
+        },
+        {
+          "value": "0",
+          "label": "0"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        },
+        {
+          "value": "6",
+          "label": "6"
+        },
+        {
+          "value": "7",
+          "label": "7"
+        },
+        {
+          "value": "8",
+          "label": "8"
+        },
+        {
+          "value": "9",
+          "label": "9"
+        },
+        {
+          "value": "F1",
+          "label": "F1"
+        },
+        {
+          "value": "F2",
+          "label": "F2"
+        },
+        {
+          "value": "F3",
+          "label": "F3"
+        },
+        {
+          "value": "F4",
+          "label": "F4"
+        },
+        {
+          "value": "F5",
+          "label": "F5"
+        },
+        {
+          "value": "F6",
+          "label": "F6"
+        },
+        {
+          "value": "F7",
+          "label": "F7"
+        },
+        {
+          "value": "F8",
+          "label": "F8"
+        },
+        {
+          "value": "F9",
+          "label": "F9"
+        },
+        {
+          "value": "F10",
+          "label": "F10"
+        },
+        {
+          "value": "F11",
+          "label": "F11"
+        },
+        {
+          "value": "F12",
+          "label": "F12"
+        },
+        {
+          "value": "Space",
+          "label": "空格"
+        },
+        {
+          "value": "Enter",
+          "label": "Enter"
+        },
+        {
+          "value": "Tab",
+          "label": "Tab"
+        },
+        {
+          "value": "Backspace",
+          "label": "退格"
+        },
+        {
+          "value": "Insert",
+          "label": "Insert"
+        },
+        {
+          "value": "Delete",
+          "label": "Delete"
+        },
+        {
+          "value": "Home",
+          "label": "Home"
+        },
+        {
+          "value": "End",
+          "label": "End"
+        },
+        {
+          "value": "Pageup",
+          "label": "PageUp"
+        },
+        {
+          "value": "Pagedown",
+          "label": "PageDown"
+        },
+        {
+          "value": "Up",
+          "label": "方向↑"
+        },
+        {
+          "value": "Down",
+          "label": "方向↓"
+        },
+        {
+          "value": "Left",
+          "label": "方向←"
+        },
+        {
+          "value": "Right",
+          "label": "方向→"
+        },
+        {
+          "value": "Minus",
+          "label": "-"
+        },
+        {
+          "value": "Equal",
+          "label": "="
+        },
+        {
+          "value": "Comma",
+          "label": ","
+        },
+        {
+          "value": "Period",
+          "label": "."
+        },
+        {
+          "value": "Slash",
+          "label": "/"
+        },
+        {
+          "value": "Semicolon",
+          "label": ";"
+        },
+        {
+          "value": "Apostrophe",
+          "label": "'"
+        },
+        {
+          "value": "Backslash",
+          "label": "\\\\"
+        },
+        {
+          "value": "Bracketleft",
+          "label": "["
+        },
+        {
+          "value": "Bracketright",
+          "label": "]"
+        }
+      ]
+    },
+    {
+      "key": "aboutChangelog",
+      "type": "text",
+      "label": "更新内容",
+      "group": "关于",
+      "content": "v4.1.5 · 2026-10-12\n手机端录制「音量键」保存失败（提示「配置 'keysData / panelKey' 的值无效」）：录制面板把键名转成配置值时用的是 Godot 枚举名 `Volumeup`（Volume 后小写），而配置项选项写的是 `VolumeUp`，两边拼写不一致被宿主校验拒绝。现在统一映射成选项拼写；顺带修好 Space / - / = / , / . 这五个键（旧逻辑会把它们转成空白或符号而失配）。\nv4.1.4 · 2026-10-11\n修复：清空键位后保存，键被「冲突对调」挪到别的槽（用户预期：清空就是清空）——清空操作不再触发对调。\n修复：键位数据里 None 字面量（现改为空串）。\nv4.1.3 · 2026-10-11\n保存双路径（配置页开=宿主管道/战斗中=直接落盘）。\n（更早略）"
+    },
+    {
+      "key": "aboutAuthor",
+      "type": "richtext",
+      "label": "作者与链接",
+      "group": "关于",
+      "content": "卡槽与铲子快捷键 v4.1.5 · 作者：apples1949\n\n[url=https://space.bilibili.com/186773722]B 站空间[/url]\n[url=https://apples1949.lanzouc.com/b007uuknqd]蓝奏云下载（密码 762b）[/url]\n\n本模组为玩家自制 Mod，与《植物大战僵尸杂交重制版》官方无隶属关系。\n赞助：微信扫码支持作者（见下方收款码图片）。"
+    }
+  ]
+}
