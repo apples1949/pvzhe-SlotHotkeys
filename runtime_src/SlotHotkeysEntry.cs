@@ -346,7 +346,7 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 		{
 			if (_tree == null || !GodotObject.IsInstanceValid(_tree)) { return; }
 
-			if (true)    /* ★ 用户要求：日志默认关闭（原：!ReadBool(KEnabled, true)） */
+			if (!ReadBool(KEnabled, true))
 			{
 				ClearAll();
 				return;
@@ -366,6 +366,7 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 				TickAboutQrImage();
 				TickConfigPagePanelButton();
 				TickMobileHidePanelKeyDropdown();   // ★ v4.1.5：手机端隐藏宿主那个 73 项下拉
+				TickOptionPageButton();          // ★ v4.2：战斗设置页入口按钮
 			}
 
 			// ── 找战斗选卡栏（不在战斗 ⇒ 清理后直接返回）──────────────
@@ -1088,6 +1089,12 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 	// ── 配置页「打开改键面板」按钮（挂在 Reset_keysData 同一行，v4.1 按用户要求）──
 	private const string PanelKeyResetName = "Reset_keysData";   // ★ v4.1：锚改到「键位数据」行
 	private const string ConfigBtnName = "ModOpenKeyPanelButton";
+	/// <summary>★ v4.2：战斗设置页里的「改键面板」按钮名（幂等判据）。</summary>
+	private const string OptBtnName = "ModSlotKeysPanelBtn";
+	/// <summary>★ v4.2.1（用户要求「三个按钮放一块」）：与时停、CD 面板**共用同一列**
+	/// （BattleOptionColumns 的跨 Mod 约定名 `ModCol4`）⇒ 三个入口按钮竖排在同一列里。</summary>
+	private const string OptColName = BattleOptionColumns.TimeStopColName;
+
 	private int _qrTick;
 	private int _cfgBtnTick;
 
@@ -1169,6 +1176,63 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 			for (int i = 0; i < n; i++)
 			{
 				OptionButton r = FindOptionButtonIn(node.GetChild(i));
+				if (r != null) { return r; }
+			}
+		}
+		catch { }
+		return null;
+	}
+
+	/// <summary>★ v4.2：战斗设置页（`BattleOption`，设置植物/僵尸血条那一页）的入口按钮。
+	/// 用户需求：配置页与战斗设置页都要有面板入口。做法照抄 TimeStop 那套（共享组件建列 + 深色按钮 + 开面板时收起设置页）。</summary>
+	private void TickOptionPageButton()
+	{
+		try
+		{
+			Node dlg = FindNodeByPrefix(_tree?.Root, "BattleOption");
+			if (dlg == null || !GodotObject.IsInstanceValid(dlg)) { return; }
+			VBoxContainer col = BattleOptionColumns.GetOrCreateColumn(dlg, OptColName, BattleOptionColumns.TimeStopColMinWidth);
+			if (col == null || !GodotObject.IsInstanceValid(col)) { return; }
+
+			Button exist = col.GetNodeOrNull(OptBtnName) as Button;
+			if (exist != null && GodotObject.IsInstanceValid(exist)) { return; }   // 幂等
+
+			Button b = new Button();
+			b.Name = OptBtnName;
+			b.Text = "改键面板";
+			b.TooltipText = "打开「卡槽与铲子快捷键」的键位设置面板（点一行 → 按新键）";
+			b.AddThemeFontSizeOverride("font_size", 14);
+			b.CustomMinimumSize = new Vector2(0f, 40f);
+			b.ProcessMode = Node.ProcessModeEnum.Always;     // 对话框在暂停树下也能点
+			BattleOptionColumns.ApplyDarkButtonStyle(b);
+			b.Pressed += () =>
+			{
+				try
+				{
+					bool willShow = !(_panelLayer != null && GodotObject.IsInstanceValid(_panelLayer) && _panelLayer.Visible);
+					TogglePanel();
+					// 设置页自己也压着 Paused ⇒ 打开面板时顺手收起它，否则关掉面板后游戏仍是暂停的
+					if (willShow) { BattleOptionColumns.DismissDialog(dlg); }
+				}
+				catch { }
+			};
+			col.AddChild(b, false, Node.InternalMode.Disabled);
+			Log("已在战斗设置页注入「改键面板」按钮。");
+		}
+		catch (Exception ex) { WarnOnce("optbtn", "战斗设置页按钮注入失败：" + ex.GetBaseException().Message); }
+	}
+
+	/// <summary>按名字前缀递归找节点（找 `BattleOption*` 对话框用）。</summary>
+	private static Node FindNodeByPrefix(Node root, string prefix)
+	{
+		try
+		{
+			if (root == null || !GodotObject.IsInstanceValid(root)) { return null; }
+			if (root.Name.ToString().StartsWith(prefix, StringComparison.Ordinal)) { return root; }
+			int n = root.GetChildCount();
+			for (int i = 0; i < n; i++)
+			{
+				Node r = FindNodeByPrefix(root.GetChild(i), prefix);
 				if (r != null) { return r; }
 			}
 		}

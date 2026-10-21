@@ -42,6 +42,7 @@
     <Compile Include="..\..\KeybindPanelManager.cs" Link="KeybindPanelManager.cs" />
     <Compile Include="..\..\SponsorQrInjector.cs" Link="SponsorQrInjector.cs" />
     <Compile Include="..\..\QrCodeBitmap.cs" Link="QrCodeBitmap.cs" />
+    <Compile Include="..\..\BattleOptionColumns.cs" Link="BattleOptionColumns.cs" />
       </ItemGroup>
 
 </Project>
