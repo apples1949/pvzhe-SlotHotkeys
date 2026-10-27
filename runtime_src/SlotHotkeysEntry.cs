@@ -315,11 +315,22 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 	}
 
 	/// <summary>设置某行键位并写回配置（面板录制/清空统一入口）。</summary>
+	/// <remarks>
+	/// ⚠️ 目前没有调用点（录制改走「暂存 + 保存」→ <see cref="SavePendingChanges"/>）。
+	///   保留但加了配置页保护：**宿主配置页开着时不能写盘**，否则页面之后点「保存」
+	///   会因 fingerprint 不符被整批拒绝（XWModToolsPanel.cs:5607 / XWModSettingsService.cs:695-698）。
+	/// </remarks>
 	private void SetRowKey(int row, Key k, string oldForKeySwap)
 	{
 		EnsureKeysCache();
 		if (row == 16) { _shovelKeyCache = k; }
 		else { _keysCache[row] = k; }
+		Node cfgReset = FindNodeByName(_tree?.Root, "Reset_" + KKeysData);
+		if (cfgReset != null && GodotObject.IsInstanceValid(cfgReset))
+		{
+			Warn("宿主配置页开着 ⇒ 跳过直接写盘（请用面板「保存」或页面「保存」）。");
+			return;
+		}
 		var changes = new Dictionary<string, object>();
 		changes[KKeysData] = BuildKeysData();
 		XWModSettingsSaveResult result = null;
@@ -728,15 +739,37 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 			try
 			{
 				string v = pkOptions[(int)idxL];
-				var ch = new Dictionary<string, object>();
-				ch[KPanelKey] = v;
-				if (_settings != null && _settings.TrySave(ch, out XWModSettingsSaveResult r))
+				// ★ v4.2.2（修「配置页里的设置最后没保存上」）：**按上下文分两条保存路径**，
+				//   与共享组件 KeybindPanelManager v2.7 的「保存」按钮同款 ——
+				//   A) 宿主配置页开着（能找到 `Reset_panelKey`）⇒ **绝不能先 TrySave**：
+				//      页面自己的 XWModSettingsEditor 握着打开那一刻的 fingerprint（磁盘哈希），
+				//      我们先写盘 ⇒ 玩家随后点宿主「保存」时 `XWModSettingsService.Save` 的
+				//      指纹校验必然失败 ⇒ 整批拒绝并弹「配置已被其他操作修改，请重新打开菜单」
+				//      （实测位置：XWModToolsPanel.cs:5607 `editor.TrySave(draft)` +
+				//       XWModSettingsService.cs:695-698 指纹比较）。旧写法正是 TrySave 在前、同步在后。
+				//      改法：只把页面下拉同步成新值，再按一次宿主「保存」按钮，让宿主管道自己落盘。
+				//   B) 页面没开（战斗中呼出面板）⇒ 无 UI 冲突 ⇒ 直接 TrySave 落盘。
+				Node pkReset = FindNodeByName(_tree?.Root, "Reset_" + KPanelKey);
+				bool cfgPageOpen = pkReset != null && GodotObject.IsInstanceValid(pkReset);
+				if (cfgPageOpen)
 				{
-					Log("面板呼出键已保存：" + (string.IsNullOrEmpty(v) ? "（无绑定）" : v));
+					KeybindPanelManager.SyncHostRowAndSave(_tree?.Root, KPanelKey, v);
+					Log("面板呼出键已同步到配置页并保存：" + (string.IsNullOrEmpty(v) ? "（无绑定）" : v));
 				}
-				// ★ v4.1.5：同步宿主配置页那一行的 enum 下拉 + 触发宿主保存链。
-				//   否则用户之后点一次宿主「保存」，宿主按**索引**读下拉里的旧值 ⇒ 把刚存的覆盖回去。
-				KeybindPanelManager.SyncHostRowAndSave(_tree?.Root, KPanelKey, v);
+				else
+				{
+					var ch = new Dictionary<string, object>();
+					ch[KPanelKey] = v;
+					XWModSettingsSaveResult r = null;
+					if (_settings != null && _settings.TrySave(ch, out r))
+					{
+						Log("面板呼出键已保存：" + (string.IsNullOrEmpty(v) ? "（无绑定）" : v));
+					}
+					else
+					{
+						Warn("面板呼出键保存失败：" + (r != null ? r.Message : "配置不可用"));
+					}
+				}
 			}
 			catch { }
 		};
