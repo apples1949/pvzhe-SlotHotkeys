@@ -760,6 +760,18 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 				{
 					var ch = new Dictionary<string, object>();
 					ch[KPanelKey] = v;
+					// ★ 2026-11-02：白名单护栏 —— 宿主 enum 键要求"值必须在 mod.json 的 options 里"，
+					//   任何一键不合法 ⇒ **整批**不落盘。这里先按声明校验一次，不合法就不写并提示。
+					if (!KeyOptionGuard.IsAllowed(_context, KPanelKey, v))
+					{
+						try
+						{
+							GD.PrintErr("[SlotHotkeys] 该按键不支持绑定：" + v
+								+ "（可选：" + KeyOptionGuard.Describe(_context, KPanelKey) + "）");
+						}
+						catch { }
+						return;
+					}
 					XWModSettingsSaveResult r = null;
 					if (_settings != null && _settings.TrySave(ch, out r))
 					{
@@ -791,6 +803,17 @@ public sealed class SlotHotkeysEntry : IXWModRuntimeEntry
 					string.IsNullOrWhiteSpace(ReadString(KPanelKey, "")) ? "（无绑定）" : ReadString(KPanelKey, ""),
 					key =>
 					{
+						// ★ 2026-11-02：白名单护栏（录制器能产出任意 Godot 键名，未声明的会被宿主整批拒）
+						if (!KeyOptionGuard.IsAllowed(_context, KPanelKey, key))
+						{
+							try
+							{
+								GD.PrintErr("[SlotHotkeys] 该按键不支持绑定：" + key
+									+ "（可选：" + KeyOptionGuard.Describe(_context, KPanelKey) + "）");
+							}
+							catch { }
+							return;
+						}
 						var ch = new Dictionary<string, object>();
 						ch[KPanelKey] = key ?? "";
 						if (_settings != null && _settings.TrySave(ch, out XWModSettingsSaveResult r))
